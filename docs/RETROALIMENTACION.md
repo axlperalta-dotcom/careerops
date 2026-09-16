@@ -8,7 +8,7 @@ Observaciones reportadas por el responsable del producto, no mediciones independ
 - Al entrar, el propósito no quedó claro de inmediato. Vista general repetía acciones de Vacantes.
 - Solicitó amarillo/naranja para los estados Guardada y Archivada.
 - Solicitó restringir el lenguaje muy ofensivo en los textos.
-- Reportó dos leyendas al entrar; faltan las imágenes para identificarlas. No se ha diagnosticado su causa.
+- Reportó dos leyendas al entrar y después compartió las capturas: el indicador «1 Issue» y su detalle son el mismo aviso de hidratación de React. El atributo inesperado es `bis_skin_checked="1"`.
 
 ## Cambios derivados
 
@@ -17,4 +17,12 @@ Observaciones reportadas por el responsable del producto, no mediciones independ
 3. Guardada en amarillo y Archivada en naranja.
 4. Filtro local y de servidor basado en palabras completas, con aviso y conservación del texto ingresado. No es moderación semántica; su alcance y vocabulario están documentados.
 
-No se cambian los registros que la persona creó durante la prueba. Las leyendas se revisarán cuando se reciba evidencia visual.
+No se cambian los registros que la persona creó durante la prueba.
+
+## Diagnóstico del aviso al abrir
+
+Se comprobó que `bis_skin_checked` no existe en el código de la aplicación ni en su respuesta HTML inicial. Una prueba de Playwright con navegador limpio verifica la carga inicial y la recarga: sin errores de consola ni atributos `bis_skin_checked` en el DOM.
+
+La evidencia apunta a una modificación externa del HTML, probablemente una extensión del navegador del usuario. No se ha identificado una extensión específica ni reproducido el aviso en ese navegador. La documentación oficial contempla extensiones que modifican el HTML como causa de este tipo de discrepancia: https://nextjs.org/docs/messages/react-hydration-error
+
+Siguiente comprobación del usuario: abrir el mismo enlace en una ventana privada donde no haya extensiones habilitadas, o en un perfil de navegador limpio. Si el aviso desaparece allí, comparar con el perfil habitual para identificar el complemento responsable. La prueba añadida permanece en CI para detectar errores de carga de la aplicación.

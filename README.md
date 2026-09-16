@@ -73,3 +73,9 @@ docs/                    Alcance, decisiones y guía de pruebas manuales
 Proyecto desarrollado con asistencia de Codex. El responsable del producto aporta requisitos, criterio de interfaz y validación de uso. El código generado se verifica con pruebas y revisión; su generación no se presenta como experiencia profesional previa del responsable. Los resultados reales del piloto se documentarán cuando existan.
 
 Consulta [la guía de pruebas](docs/GUIA-DE-PRUEBAS.md), [las decisiones técnicas](docs/ARQUITECTURA.md) y [el alcance](docs/ALCANCE.md).
+
+## Aviso de hidratación con `bis_skin_checked`
+
+El indicador «1 Issue» de desarrollo puede mostrar una diferencia de HTML al iniciar React. En la captura reportada aparece `bis_skin_checked="1"`, que no forma parte del HTML generado por CareerOps. La prueba de carga inicial y recarga con Chromium limpio pasa sin errores de consola.
+
+Esto apunta a una modificación del navegador, probablemente de una extensión; no identifica por sí solo el complemento. Prueba el mismo enlace en una ventana privada sin extensiones habilitadas, o en un perfil limpio. Si el aviso persiste, comparte el detalle nuevo. [Next.js documenta esta causa](https://nextjs.org/docs/messages/react-hydration-error). La prueba `tests/e2e/hydration.spec.ts` verifica la carga sin silenciar errores.
