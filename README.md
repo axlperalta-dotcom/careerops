@@ -7,6 +7,8 @@ Organizador personal de vacantes, proyectos y evidencias para construir un porta
 ## Qué puedes hacer
 
 - Guardar, editar, buscar y filtrar vacantes por área y estado.
+- Entrar directamente a Vacantes; navegación con Vacantes, Proyectos y Bitácora.
+- Distinguir Guardada (amarillo) y Archivada (naranja).
 - Crear proyectos independientes o vinculados a una vacante.
 - Organizar tareas y marcar avances sin confundir tareas completadas con dominio de una habilidad.
 - Registrar pruebas, decisiones y enlaces de evidencia en una bitácora.
@@ -14,6 +16,8 @@ Organizador personal de vacantes, proyectos y evidencias para construir un porta
 - Eliminar vacantes conservando los proyectos asociados; eliminar proyectos conservando sus notas en el historial.
 
 Incluye un resumen manual de la vacante Product Engineer compartida como referencia, un plan inicial de CareerOps y tareas pendientes. No se atribuyen usuarios, experiencia laboral ni resultados de producción inexistentes.
+
+Los campos de texto tienen un filtro básico de lenguaje muy ofensivo, validado tanto en la interfaz como en la API. El aviso mantiene el formulario para corregirlo. Se detectan palabras completas, mayúsculas, acentos y algunas sustituciones comunes; no es moderación contextual ni garantiza detectar todas las variantes. No se modifican registros anteriores automáticamente. El vocabulario se puede ajustar en `src/lib/content-policy.ts`; la validación de enlaces se mantiene separada.
 
 ## Inicio local
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hasOffensiveLanguage, languageMessage } from "./content-policy";
 
 export const areas = ["Software", "Sistemas", "Aeroespacial"] as const;
 export const jobStatuses = [
@@ -13,7 +14,12 @@ export const projectStatuses = [
   "Completado",
 ] as const;
 const text = (max: number) =>
-  z.string().trim().min(1, "Este campo es obligatorio.").max(max);
+  z
+    .string()
+    .trim()
+    .min(1, "Este campo es obligatorio.")
+    .max(max)
+    .refine((value) => !hasOffensiveLanguage(value), languageMessage);
 const safeUrl = z
   .string()
   .trim()
@@ -33,7 +39,11 @@ export const jobInput = z.object({
   area: z.enum(areas),
   status: z.enum(jobStatuses),
   url: safeUrl,
-  description: z.string().trim().max(30000),
+  description: z
+    .string()
+    .trim()
+    .max(30000)
+    .refine((value) => !hasOffensiveLanguage(value), languageMessage),
   skills: z.array(text(80)).max(40),
 });
 export const projectInput = z.object({

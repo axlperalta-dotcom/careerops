@@ -672,6 +672,16 @@ h1 {
   background: #f2f4f8;
   color: #818b9e;
 }
+.badge.amber {
+  background: #fff5cf;
+  color: #866000;
+  border: 1px solid #eedc92;
+}
+.badge.orange {
+  background: #ffeddc;
+  color: #a14d11;
+  border: 1px solid #f3cba7;
+}
 .project-card h3 {
   font-size: 18px;
   font-weight: 600;

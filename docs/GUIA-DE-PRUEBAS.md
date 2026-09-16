@@ -17,7 +17,7 @@ Las cuatro tareas iniciales son una lista de comprobación para ti. Completarlas
 
 ```text
 Título: [acción] no funciona como esperaba
-Pantalla: Vacantes / Proyectos / Bitácora / Vista general
+Pantalla: Vacantes / Proyectos / Bitácora
 Qué hice:
 Qué esperaba:
 Qué ocurrió:

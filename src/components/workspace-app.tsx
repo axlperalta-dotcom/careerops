@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from "react";
 import {
-  ArrowRight,
   ArrowUpRight,
   BookOpen,
   BriefcaseBusiness,
@@ -18,7 +17,6 @@ import {
   Code2,
   ExternalLink,
   FolderKanban,
-  LayoutDashboard,
   Link2,
   LoaderCircle,
   MessageSquareText,
@@ -27,7 +25,6 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
-  Target,
   Trash2,
   X,
   Rocket,
@@ -38,6 +35,7 @@ import {
   jobStatuses,
   projectStatuses,
   projectProgress,
+  commandSchema,
   type Activity,
   type Command,
   type Job,
@@ -45,7 +43,7 @@ import {
   type Workspace,
 } from "@/lib/model";
 
-type View = "overview" | "jobs" | "projects" | "log";
+type View = "jobs" | "projects" | "log";
 type Modal =
   | { type: "jobForm"; job?: Job }
   | { type: "projectForm"; project?: Project; jobId?: string }
@@ -53,20 +51,17 @@ type Modal =
   | { type: "project"; id: string }
   | { type: "delete"; entity: "job" | "project"; id: string; title: string };
 const nav = [
-  { id: "overview", label: "Vista general", icon: LayoutDashboard },
   { id: "jobs", label: "Vacantes", icon: BriefcaseBusiness },
   { id: "projects", label: "Proyectos", icon: FolderKanban },
   { id: "log", label: "Bitácora", icon: BookOpen },
 ] as const;
 const viewTitles: Record<View, string> = {
-  overview: "Tu próximo paso empieza aquí.",
-  jobs: "Oportunidades con dirección.",
-  projects: "Convierte requisitos en proyectos.",
-  log: "Cada avance cuenta.",
+  jobs: "Mis vacantes",
+  projects: "Mis proyectos",
+  log: "Bitácora",
 };
 const viewSubtitles: Record<View, string> = {
-  overview: "Conecta lo que quieres hacer con lo que puedes demostrar.",
-  jobs: "Guarda las vacantes que te interesan y prepara tu siguiente movimiento.",
+  jobs: "Guarda una vacante, revisa sus requisitos y crea un proyecto para practicarlos.",
   projects: "Construye, prueba y reúne evidencia de lo que vas aprendiendo.",
   log: "Tus decisiones, pruebas y aprendizajes, en un solo lugar.",
 };
@@ -90,7 +85,11 @@ function Badge({ value }: { value: string }) {
     ? "green"
     : ["En progreso", "En preparación"].includes(value)
       ? "blue"
-      : "neutral";
+      : value === "Guardada"
+        ? "amber"
+        : value === "Archivada"
+          ? "orange"
+          : "neutral";
   return (
     <span className={`badge ${color}`}>
       <span />
@@ -129,7 +128,7 @@ function Empty({
 
 export default function WorkspaceApp() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>("jobs");
   const [query, setQuery] = useState("");
   const [area, setArea] = useState("Todas");
   const [status, setStatus] = useState("Todos");
@@ -179,6 +178,11 @@ export default function WorkspaceApp() {
   }
   async function mutate(command: Command, message: string) {
     if (busy) return false;
+    const parsed = commandSchema.safeParse(command);
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message || "Revisa los campos.");
+      return false;
+    }
     setBusy(true);
     setError("");
     try {
@@ -220,11 +224,6 @@ export default function WorkspaceApp() {
     ) ?? [];
   const activities =
     workspace?.activities.filter((a) => matches([a.body])) ?? [];
-  const activeProject =
-    workspace?.projects.find((p) => p.status === "En progreso") ||
-    workspace?.projects.find((p) => p.status === "Por empezar");
-  const finished = workspace?.tasks.filter((t) => t.done).length ?? 0;
-  const total = workspace?.tasks.length ?? 0;
 
   function ProjectCard({ project }: { project: Project }) {
     const progress = projectProgress(workspace!.tasks, project.id);
@@ -994,20 +993,22 @@ export default function WorkspaceApp() {
               <h1>{viewTitles[view]}</h1>
               <p>{viewSubtitles[view]}</p>
             </div>
-            <button
-              className="button primary"
-              disabled={!workspace}
-              onClick={() =>
-                open(
-                  view === "projects"
-                    ? { type: "projectForm" }
-                    : { type: "jobForm" },
-                )
-              }
-            >
-              <Plus size={18} />
-              {view === "projects" ? "Nuevo proyecto" : "Nueva vacante"}
-            </button>
+            {view !== "log" && (
+              <button
+                className="button primary"
+                disabled={!workspace}
+                onClick={() =>
+                  open(
+                    view === "projects"
+                      ? { type: "projectForm" }
+                      : { type: "jobForm" },
+                  )
+                }
+              >
+                <Plus size={18} />
+                {view === "projects" ? "Nuevo proyecto" : "Nueva vacante"}
+              </button>
+            )}
           </div>
           {error && !modal && (
             <div role="alert" className="error-banner">
@@ -1022,389 +1023,141 @@ export default function WorkspaceApp() {
             </div>
           ) : (
             <>
-              {view === "overview" ? (
-                <>
-                  <div className="stats-grid">
-                    <div className="stat-card">
-                      <span className="stat-icon blue">
-                        <BriefcaseBusiness size={20} />
-                      </span>
-                      <span>Vacantes guardadas</span>
-                      <strong>
-                        {workspace.jobs.length.toString().padStart(2, "0")}
-                      </strong>
-                      <small>
-                        {
-                          workspace.jobs.filter(
-                            (j) => j.status === "En preparación",
-                          ).length
-                        }{" "}
-                        en preparación
-                      </small>
-                    </div>
-                    <div className="stat-card">
-                      <span className="stat-icon purple">
-                        <FolderKanban size={20} />
-                      </span>
-                      <span>Proyectos en marcha</span>
-                      <strong>
-                        {workspace.projects
-                          .filter((p) => p.status === "En progreso")
-                          .length.toString()
-                          .padStart(2, "0")}
-                      </strong>
-                      <small>
-                        {workspace.projects.length} en tu portafolio
-                      </small>
-                    </div>
-                    <div className="stat-card">
-                      <span className="stat-icon green">
-                        <CheckCircle2 size={20} />
-                      </span>
-                      <span>Tareas completadas</span>
-                      <strong>
-                        {finished.toString().padStart(2, "0")}
-                        <em> / {total}</em>
-                      </strong>
-                      <small>Pasos que ya puedes demostrar</small>
-                    </div>
-                    <div className="stat-card">
-                      <span className="stat-icon orange">
-                        <MessageSquareText size={20} />
-                      </span>
-                      <span>Avances registrados</span>
-                      <strong>
-                        {workspace.activities
-                          .filter((a) => a.kind === "note")
-                          .length.toString()
-                          .padStart(2, "0")}
-                      </strong>
-                      <small>Pruebas, decisiones y aprendizajes</small>
-                    </div>
-                  </div>
-                  <div className="overview-grid">
-                    <div className="primary-column">
-                      <section className="focus-card">
-                        <div className="focus-content">
-                          <span className="focus-label">
-                            <span />
-                            TU SIGUIENTE PASO
-                          </span>
-                          <h2>
-                            {activeProject
-                              ? `Dale forma a ${activeProject.title}.`
-                              : "Tu próxima idea tiene lugar aquí."}
-                          </h2>
-                          <p>
-                            {activeProject
-                              ? workspace.tasks.find(
-                                  (t) =>
-                                    t.projectId === activeProject.id && !t.done,
-                                )?.title ||
-                                "Define un paso pequeño y registra lo que aprendas al probarlo."
-                              : "Elige una habilidad de una vacante y conviértela en un proyecto."}
-                          </p>
-                          <button
-                            className="button light"
-                            onClick={() =>
-                              open(
-                                activeProject
-                                  ? { type: "project", id: activeProject.id }
-                                  : { type: "projectForm" },
-                              )
-                            }
-                          >
-                            {activeProject
-                              ? "Abrir mi proyecto"
-                              : "Crear mi primer proyecto"}
-                            <ArrowRight size={17} />
-                          </button>
-                        </div>
-                        <div className="focus-art" aria-hidden="true">
-                          <div className="orbit orbit-one" />
-                          <div className="orbit orbit-two" />
-                          <div className="art-tile tile-back">
-                            <Code2 />
-                          </div>
-                          <div className="art-tile tile-front">
-                            <ArrowUpRight size={57} strokeWidth={1.5} />
-                          </div>
-                          <span className="art-spark">✦</span>
-                        </div>
-                      </section>
-                      <section>
-                        <div className="section-heading">
-                          <h2>
-                            Proyectos en tu radar{" "}
-                            <span>{workspace.projects.length}</span>
-                          </h2>
-                          <button
-                            className="text-link"
-                            onClick={() => navigate("projects")}
-                          >
-                            Ver todos <ArrowRight size={15} />
-                          </button>
-                        </div>
-                        <div className="project-grid">
-                          {workspace.projects.slice(0, 2).map((p) => (
-                            <ProjectCard key={p.id} project={p} />
-                          ))}
-                          <button
-                            className="new-project-card"
-                            onClick={() => open({ type: "projectForm" })}
-                          >
-                            <span>
-                              <Plus size={25} />
-                            </span>
-                            <strong>Tu próxima idea</strong>
-                            <p>
-                              Transforma un requisito
-                              <br />
-                              en algo que puedas mostrar.
-                            </p>
-                            <small>
-                              Crear proyecto <ArrowRight size={14} />
-                            </small>
-                          </button>
-                        </div>
-                      </section>
-                    </div>
-                    <aside className="secondary-column">
-                      <section className="panel areas-panel">
-                        <div className="section-heading">
-                          <h2>Tus áreas</h2>
-                          <Target size={18} />
-                        </div>
-                        {areas.map((a) => {
-                          const Icon = areaIcon[a];
-                          const count = workspace.projects.filter(
-                            (p) => p.area === a,
-                          ).length;
-                          return (
-                            <button
-                              key={a}
-                              className="area-row"
-                              onClick={() => {
-                                navigate("projects");
-                                setArea(a);
-                              }}
-                            >
-                              <span
-                                className={`area-symbol ${a.toLowerCase()}`}
-                              >
-                                <Icon size={19} />
-                              </span>
-                              <div>
-                                <strong>{a}</strong>
-                                <small>
-                                  {count}{" "}
-                                  {count === 1 ? "proyecto" : "proyectos"}
-                                </small>
-                              </div>
-                              <ChevronRight size={16} />
-                            </button>
-                          );
-                        })}
-                        <div className="area-footnote">
-                          Elige un área para explorar tus proyectos.
-                        </div>
-                      </section>
-                      <section className="panel activity-panel">
-                        <div className="section-heading">
-                          <h2>Últimos movimientos</h2>
-                          <span className="tiny-dot" />
-                        </div>
-                        {workspace.activities.slice(0, 3).map((a) => (
-                          <ActivityRow key={a.id} activity={a} />
-                        ))}
-                        {!workspace.activities.length && (
-                          <p className="muted">
-                            Aquí aparecerán tus primeros avances.
-                          </p>
-                        )}
-                        <button
-                          className="text-link"
-                          onClick={() => navigate("log")}
-                        >
-                          Abrir bitácora <ArrowRight size={15} />
-                        </button>
-                      </section>
-                    </aside>
-                  </div>
-                  <section className="vacancies-section">
-                    <div className="section-heading">
-                      <h2>
-                        Vacantes que te inspiran{" "}
-                        <span>{workspace.jobs.length}</span>
-                      </h2>
+              <>
+                <div className="toolbar">
+                  <div className="search-field">
+                    <Search size={18} />
+                    <input
+                      aria-label="Buscar"
+                      placeholder={
+                        view === "log"
+                          ? "Buscar en tus avances…"
+                          : "Buscar por nombre o habilidad…"
+                      }
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
+                    {query && (
                       <button
-                        className="text-link"
-                        onClick={() => navigate("jobs")}
+                        className="icon-button"
+                        aria-label="Limpiar búsqueda"
+                        onClick={() => setQuery("")}
                       >
-                        Ver vacantes <ArrowRight size={15} />
+                        <X size={15} />
                       </button>
-                    </div>
-                    <div className="job-list">
-                      {workspace.jobs.slice(0, 3).map((j) => (
-                        <JobRow key={j.id} job={j} />
-                      ))}
-                      {!workspace.jobs.length && (
-                        <Empty
-                          title="Tu siguiente oportunidad"
-                          text="Guarda una vacante para identificar qué te gustaría practicar."
-                          action={
-                            <button
-                              className="button primary"
-                              onClick={() => open({ type: "jobForm" })}
-                            >
-                              <Plus size={16} />
-                              Nueva vacante
-                            </button>
-                          }
-                        />
-                      )}
-                    </div>
-                  </section>
-                </>
-              ) : (
-                <>
-                  <div className="toolbar">
-                    <div className="search-field">
-                      <Search size={18} />
-                      <input
-                        aria-label="Buscar"
-                        placeholder={
-                          view === "log"
-                            ? "Buscar en tus avances…"
-                            : "Buscar por nombre o habilidad…"
-                        }
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                      />
-                      {query && (
-                        <button
-                          className="icon-button"
-                          aria-label="Limpiar búsqueda"
-                          onClick={() => setQuery("")}
-                        >
-                          <X size={15} />
-                        </button>
-                      )}
-                    </div>
-                    {view !== "log" && (
-                      <>
-                        <select
-                          aria-label="Filtrar por área"
-                          value={area}
-                          onChange={(e) => setArea(e.target.value)}
-                        >
-                          <option value="Todas">Todas las áreas</option>
-                          {areas.map((a) => (
-                            <option key={a}>{a}</option>
-                          ))}
-                        </select>
-                        <select
-                          aria-label="Filtrar por estado"
-                          value={status}
-                          onChange={(e) => setStatus(e.target.value)}
-                        >
-                          <option value="Todos">Todos los estados</option>
-                          {(view === "jobs"
-                            ? jobStatuses
-                            : projectStatuses
-                          ).map((s) => (
-                            <option key={s}>{s}</option>
-                          ))}
-                        </select>
-                      </>
                     )}
                   </div>
-                  {view === "jobs" && (
+                  {view !== "log" && (
                     <>
-                      <div className="result-count">
-                        {jobs.length}{" "}
-                        {jobs.length === 1 ? "vacante" : "vacantes"}
-                      </div>
-                      <div className="job-list">
-                        {jobs.map((j) => (
-                          <JobRow key={j.id} job={j} />
+                      <select
+                        aria-label="Filtrar por área"
+                        value={area}
+                        onChange={(e) => setArea(e.target.value)}
+                      >
+                        <option value="Todas">Todas las áreas</option>
+                        {areas.map((a) => (
+                          <option key={a}>{a}</option>
                         ))}
-                        {!jobs.length && (
-                          <Empty
-                            title={
-                              workspace.jobs.length
-                                ? "No hay coincidencias"
-                                : "Empieza por una oportunidad"
-                            }
-                            text={
-                              workspace.jobs.length
-                                ? "Prueba otro nombre, área o estado."
-                                : "Agrega una vacante que te gustaría preparar."
-                            }
-                          />
+                      </select>
+                      <select
+                        aria-label="Filtrar por estado"
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                      >
+                        <option value="Todos">Todos los estados</option>
+                        {(view === "jobs" ? jobStatuses : projectStatuses).map(
+                          (s) => (
+                            <option key={s}>{s}</option>
+                          ),
                         )}
-                      </div>
+                      </select>
                     </>
                   )}
-                  {view === "projects" && (
-                    <>
-                      <div className="result-count">
-                        {projects.length}{" "}
-                        {projects.length === 1 ? "proyecto" : "proyectos"}
-                      </div>
-                      <div className="project-grid full-grid">
-                        {projects.map((p) => (
-                          <ProjectCard key={p.id} project={p} />
-                        ))}
-                      </div>
-                      {!projects.length && (
+                </div>
+                {view === "jobs" && (
+                  <>
+                    <div className="result-count">
+                      {jobs.length} {jobs.length === 1 ? "vacante" : "vacantes"}
+                    </div>
+                    <div className="job-list">
+                      {jobs.map((j) => (
+                        <JobRow key={j.id} job={j} />
+                      ))}
+                      {!jobs.length && (
                         <Empty
                           title={
-                            workspace.projects.length
+                            workspace.jobs.length
                               ? "No hay coincidencias"
-                              : "Tu portafolio empieza aquí"
+                              : "Empieza por una oportunidad"
                           }
                           text={
-                            workspace.projects.length
+                            workspace.jobs.length
                               ? "Prueba otro nombre, área o estado."
-                              : "Crea un proyecto con un objetivo pequeño y claro."
+                              : "Agrega una vacante que te gustaría preparar."
                           }
-                          action={
-                            !workspace.projects.length && (
-                              <button
-                                className="button primary"
-                                onClick={() => open({ type: "projectForm" })}
-                              >
-                                <Plus size={16} />
-                                Nuevo proyecto
-                              </button>
-                            )
-                          }
-                        />
-                      )}
-                    </>
-                  )}
-                  {view === "log" && (
-                    <div className="panel log-panel">
-                      <div className="section-heading">
-                        <h2>Historial de tu espacio</h2>
-                        <span className="muted">
-                          Últimos {activities.length} registros
-                        </span>
-                      </div>
-                      {activities.map((a) => (
-                        <ActivityRow key={a.id} activity={a} />
-                      ))}
-                      {!activities.length && (
-                        <Empty
-                          title="Sin registros por mostrar"
-                          text="Abre un proyecto para registrar un avance o prueba otra búsqueda."
                         />
                       )}
                     </div>
-                  )}
-                </>
-              )}
+                  </>
+                )}
+                {view === "projects" && (
+                  <>
+                    <div className="result-count">
+                      {projects.length}{" "}
+                      {projects.length === 1 ? "proyecto" : "proyectos"}
+                    </div>
+                    <div className="project-grid full-grid">
+                      {projects.map((p) => (
+                        <ProjectCard key={p.id} project={p} />
+                      ))}
+                    </div>
+                    {!projects.length && (
+                      <Empty
+                        title={
+                          workspace.projects.length
+                            ? "No hay coincidencias"
+                            : "Tu portafolio empieza aquí"
+                        }
+                        text={
+                          workspace.projects.length
+                            ? "Prueba otro nombre, área o estado."
+                            : "Crea un proyecto con un objetivo pequeño y claro."
+                        }
+                        action={
+                          !workspace.projects.length && (
+                            <button
+                              className="button primary"
+                              onClick={() => open({ type: "projectForm" })}
+                            >
+                              <Plus size={16} />
+                              Nuevo proyecto
+                            </button>
+                          )
+                        }
+                      />
+                    )}
+                  </>
+                )}
+                {view === "log" && (
+                  <div className="panel log-panel">
+                    <div className="section-heading">
+                      <h2>Historial de tu espacio</h2>
+                      <span className="muted">
+                        Últimos {activities.length} registros
+                      </span>
+                    </div>
+                    {activities.map((a) => (
+                      <ActivityRow key={a.id} activity={a} />
+                    ))}
+                    {!activities.length && (
+                      <Empty
+                        title="Sin registros por mostrar"
+                        text="Abre un proyecto para registrar un avance o prueba otra búsqueda."
+                      />
+                    )}
+                  </div>
+                )}
+              </>
               <footer className="page-footer">
                 <span>
                   CareerOps <span> / </span> Construye tu siguiente oportunidad.

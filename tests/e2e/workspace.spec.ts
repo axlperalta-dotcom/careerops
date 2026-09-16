@@ -5,8 +5,12 @@ test("vacancy → project → task → evidence survives reload and can be remov
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Tu próximo paso empieza aquí." }),
+    page.getByRole("heading", { name: "Mis vacantes", exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveCount(3);
+  await expect(
+    page.getByRole("button", { name: "Vista general", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Nueva vacante", exact: true })
     .click();
@@ -28,6 +32,17 @@ test("vacancy → project → task → evidence survives reload and can be remov
     .click();
   await page.getByLabel("Buscar", { exact: true }).fill(title);
   await page.getByRole("button", { name: new RegExp(title) }).click();
+  await expect(dialog.locator(".badge")).toHaveClass("badge amber");
+  await dialog.getByRole("button", { name: "Editar", exact: true }).click();
+  await dialog
+    .getByRole("combobox", { name: "Estado", exact: true })
+    .selectOption("Archivada");
+  await dialog
+    .getByRole("button", { name: "Guardar vacante", exact: true })
+    .click();
+  await expect(dialog).not.toBeVisible();
+  await page.getByRole("button", { name: new RegExp(title) }).click();
+  await expect(dialog.locator(".badge")).toHaveClass("badge orange");
   await dialog
     .getByRole("button", { name: "Crear proyecto", exact: true })
     .click();
@@ -91,6 +106,54 @@ test("vacancy → project → task → evidence survives reload and can be remov
     .getByRole("button", { name: "Eliminar vacante", exact: true })
     .click();
   await expect(dialog).not.toBeVisible();
+});
+
+test("language warning preserves input and the API also rejects offensive text", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Nueva vacante", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Puesto", { exact: true }).fill("Pendejo");
+  await dialog.getByLabel("Empresa", { exact: true }).fill("Ejemplo");
+  await dialog
+    .getByRole("button", { name: "Guardar vacante", exact: true })
+    .click();
+  await expect(dialog.getByRole("alert")).toContainText("Revisa el lenguaje");
+  await expect(dialog.getByLabel("Puesto", { exact: true })).toHaveValue(
+    "Pendejo",
+  );
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Bitácora", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Nueva vacante", exact: true }),
+  ).toHaveCount(0);
+  const before = await (await request.get("/api/workspace")).json();
+  const response = await request.post("/api/workspace", {
+    data: {
+      type: "saveJob",
+      data: {
+        title: "Pendejo",
+        company: "Ejemplo",
+        area: "Software",
+        status: "Guardada",
+        url: "",
+        description: "",
+        skills: [],
+      },
+    },
+  });
+  expect(response.status()).toBe(400);
+  expect((await response.json()).error).toContain("Revisa el lenguaje");
+  const after = await (await request.get("/api/workspace")).json();
+  expect(after.jobs).toEqual(before.jobs);
+  expect(after.activities).toEqual(before.activities);
 });
 
 test("mobile navigation, filtering and dialog keyboard dismissal", async ({

@@ -8,9 +8,12 @@ Una persona que prepara su portafolio guarda ofertas de empleo, ideas y evidenci
 
 Guardar vacante → crear proyecto vinculado → agregar tareas → registrar evidencia → consultar historial.
 
+La entrada es Vacantes. Se retiró Vista general tras la primera prueba del usuario porque duplicaba acciones y confundía el propósito. Guardada se muestra en amarillo y Archivada en naranja, manteniendo sus etiquetas textuales.
+
 ## Criterios de aceptación
 
 - Los formularios permiten crear y editar registros con validación.
+- El lenguaje fuertemente ofensivo de la lista básica se rechaza al guardar, también por API, sin borrar el formulario ni alterar datos anteriores.
 - Los cambios persisten al reiniciar el almacenamiento.
 - Eliminar una vacante no elimina proyectos.
 - Eliminar un proyecto elimina sus tareas pero conserva sus notas sin vínculo.
