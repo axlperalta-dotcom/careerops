@@ -1,12 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
-import { readFile, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as schema from "../src/lib/schema";
 import { Repository, RecordNotFound } from "../src/lib/repository";
 import { commandSchema } from "../src/lib/model";
+import { migrate } from "../src/lib/migrate";
 
 describe("durable local workspace", () => {
   let client: PGlite;
@@ -15,7 +16,7 @@ describe("durable local workspace", () => {
   beforeAll(async () => {
     folder = await mkdtemp(path.join(tmpdir(), "careerops-test-"));
     client = new PGlite(folder);
-    await client.exec(await readFile("migrations/0000_initial.sql", "utf8"));
+    await migrate(client);
     repo = new Repository(drizzle(client, { schema }));
     await repo.seed();
   });

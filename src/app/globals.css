@@ -1334,6 +1334,110 @@ h1 {
 .toast .icon-button {
   color: #b4c2dc;
 }
+.requirements-panel {
+  margin: 26px 0;
+}
+.requirements-panel > .muted {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.requirement-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.requirement-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 16px 0;
+  font-size: 12px;
+  color: #66738c;
+}
+.requirement-counts strong {
+  color: #23314d;
+}
+.requirement-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.requirement-card summary {
+  cursor: pointer;
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.requirement-card summary strong {
+  margin-right: 12px;
+}
+.requirement-status {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.requirement-status.pending {
+  background: #fff4dd;
+  color: #8a5709;
+}
+.requirement-status.has-project {
+  background: #eaf0ff;
+  color: #345da4;
+}
+.requirement-status.has-evidence {
+  background: #e5f5ec;
+  color: #246147;
+}
+.requirement-content {
+  border-top: 1px solid var(--line);
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+.requirement-content .form {
+  margin-top: 0;
+}
+.requirement-content h4 {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.requirement-content .muted,
+.requirement-empty {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.requirement-empty {
+  color: #66738c;
+  margin-top: 18px;
+}
+.requirement-evidence {
+  padding: 12px;
+  background: #f8f9fd;
+  border-radius: 8px;
+}
+.requirement-evidence p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.requirement-confirm {
+  padding: 12px;
+  border: 1px solid #f4cfd0;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.requirement-confirm p {
+  margin: 0 0 10px;
+}
 .sr-only {
   position: absolute;
   width: 1px;

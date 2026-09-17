@@ -6,7 +6,7 @@ Una persona que prepara su portafolio guarda ofertas de empleo, ideas y evidenci
 
 ## Recorrido entregado
 
-Guardar vacante → crear proyecto vinculado → agregar tareas → registrar evidencia → consultar historial.
+Guardar vacante → definir requisitos → vincular proyectos → agregar tareas → registrar evidencia por requisito → consultar historial.
 
 La entrada es Vacantes. Se retiró Vista general tras la primera prueba del usuario porque duplicaba acciones y confundía el propósito. Guardada se muestra en amarillo y Archivada en naranja, manteniendo sus etiquetas textuales.
 
@@ -20,6 +20,11 @@ La entrada es Vacantes. Se retiró Vista general tras la primera prueba del usua
 - Reintentar la misma marca de tarea no duplica su evento.
 - Las áreas Software, Sistemas y Aeroespacial pueden filtrarse.
 - La interfaz funciona con teclado y en un ancho de 390 píxeles.
+- Los requisitos se crean, editan, vinculan y eliminan dentro de una vacante.
+- Importar habilidades no duplica nombres existentes; no crea evidencia ni asigna proyectos automáticamente.
+- Un enlace válido y una explicación son obligatorios para registrar evidencia de un requisito.
+- Quitar la última evidencia recalcula el estado; completar un proyecto no acredita un requisito.
+- La actualización de la base conserva los registros anteriores y puede ejecutarse nuevamente sin duplicar cambios.
 
 ## Límites actuales
 
@@ -33,8 +38,8 @@ La entrada es Vacantes. Se retiró Vista general tras la primera prueba del usua
 
 ## Próximas decisiones, después de la prueba
 
-1. Corregir fricciones de la primera sesión del usuario.
-2. Definir habilidades del perfil y comparación explícita con requisitos.
+1. Probar el recorrido de requisitos y evidencias con una vacante real.
+2. Decidir si hace falta un perfil de habilidades además de los requisitos por vacante.
 3. Diseñar sugerencias de proyectos asistidas por IA, con fuentes y evaluación.
 4. Preparar autenticación, Postgres servidor, copias de seguridad y despliegue privado antes de un piloto remoto.
 

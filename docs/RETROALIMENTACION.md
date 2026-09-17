@@ -23,6 +23,6 @@ No se cambian los registros que la persona creó durante la prueba.
 
 Se comprobó que `bis_skin_checked` no existe en el código de la aplicación ni en su respuesta HTML inicial. Una prueba de Playwright con navegador limpio verifica la carga inicial y la recarga: sin errores de consola ni atributos `bis_skin_checked` en el DOM.
 
-La evidencia apunta a una modificación externa del HTML, probablemente una extensión del navegador del usuario. No se ha identificado una extensión específica ni reproducido el aviso en ese navegador. La documentación oficial contempla extensiones que modifican el HTML como causa de este tipo de discrepancia: https://nextjs.org/docs/messages/react-hydration-error
+El usuario confirmó que el aviso desaparece en incógnito y, tras comparar sus extensiones, identificó **Urban VPN** como responsable en su navegador. La documentación oficial contempla extensiones que modifican el HTML como causa de este tipo de discrepancia: https://nextjs.org/docs/messages/react-hydration-error
 
-Siguiente comprobación del usuario: abrir el mismo enlace en una ventana privada donde no haya extensiones habilitadas, o en un perfil de navegador limpio. Si el aviso desaparece allí, comparar con el perfil habitual para identificar el complemento responsable. La prueba añadida permanece en CI para detectar errores de carga de la aplicación.
+El usuario dio el incidente por resuelto y aprobó los cambios. La prueba añadida permanece en CI para detectar errores de carga de la aplicación. Después eligió continuar con requisitos y evidencias dentro de las vacantes; su evaluación de esta nueva función sigue pendiente.

@@ -10,6 +10,14 @@ export class Repository {
 
   async snapshot(): Promise<Workspace> {
     return this.db.transaction(async (tx) => ({
+      requirements: await tx
+        .select()
+        .from(schema.requirements)
+        .orderBy(schema.requirements.position),
+      evidence: await tx
+        .select()
+        .from(schema.evidence)
+        .orderBy(desc(schema.evidence.createdAt)),
       jobs: await tx
         .select()
         .from(schema.jobs)
@@ -38,16 +46,14 @@ export class Repository {
         url = "",
         kind: "event" | "note" = "event",
       ) =>
-        tx
-          .insert(schema.activities)
-          .values({
-            id: crypto.randomUUID(),
-            body,
-            projectId,
-            url,
-            kind,
-            createdAt: stamp(),
-          });
+        tx.insert(schema.activities).values({
+          id: crypto.randomUUID(),
+          body,
+          projectId,
+          url,
+          kind,
+          createdAt: stamp(),
+        });
       const requireProject = async (id: string) => {
         const [project] = await tx
           .select()
@@ -59,7 +65,125 @@ export class Repository {
           );
         return project;
       };
+      const requireJob = async (id: string) => {
+        const [job] = await tx
+          .select()
+          .from(schema.jobs)
+          .where(eq(schema.jobs.id, id));
+        if (!job) throw new RecordNotFound("La vacante ya no existe.");
+        return job;
+      };
+      const requireRequirement = async (id: string) => {
+        const [requirement] = await tx
+          .select()
+          .from(schema.requirements)
+          .where(eq(schema.requirements.id, id));
+        if (!requirement)
+          throw new RecordNotFound("El requisito ya no existe.");
+        return requirement;
+      };
       switch (command.type) {
+        case "saveRequirement": {
+          await requireJob(command.jobId);
+          if (command.projectId) await requireProject(command.projectId);
+          const data = {
+            title: command.title,
+            jobId: command.jobId,
+            projectId: command.projectId,
+          };
+          if (command.id) {
+            const previous = await requireRequirement(command.id);
+            if (previous.jobId !== command.jobId)
+              throw new RecordNotFound(
+                "El requisito no pertenece a esta vacante.",
+              );
+            await tx
+              .update(schema.requirements)
+              .set(data)
+              .where(eq(schema.requirements.id, command.id));
+          } else {
+            await tx
+              .insert(schema.requirements)
+              .values({ ...data, id: crypto.randomUUID() });
+          }
+          await event(
+            `${command.id ? "Actualizaste" : "Añadiste"} el requisito «${command.title}».`,
+            command.projectId,
+          );
+          break;
+        }
+        case "importRequirements": {
+          const job = await requireJob(command.jobId);
+          const existing = await tx
+            .select()
+            .from(schema.requirements)
+            .where(eq(schema.requirements.jobId, job.id));
+          const normalize = (title: string) =>
+            title.trim().normalize("NFKC").toLocaleLowerCase("es");
+          const titles = new Set(existing.map((item) => normalize(item.title)));
+          let count = 0;
+          for (const skill of job.skills) {
+            if (titles.has(normalize(skill))) continue;
+            titles.add(normalize(skill));
+            await tx
+              .insert(schema.requirements)
+              .values({
+                id: crypto.randomUUID(),
+                jobId: job.id,
+                title: skill,
+                projectId: null,
+              });
+            count++;
+          }
+          if (count)
+            await event(
+              `Añadiste ${count} requisitos desde las habilidades de «${job.title}».`,
+            );
+          break;
+        }
+        case "deleteRequirement": {
+          const requirement = await requireRequirement(command.id);
+          await tx
+            .delete(schema.requirements)
+            .where(eq(schema.requirements.id, command.id));
+          await event(
+            `Eliminaste el requisito «${requirement.title}» y sus evidencias.`,
+            requirement.projectId,
+          );
+          break;
+        }
+        case "addEvidence": {
+          const requirement = await requireRequirement(command.requirementId);
+          await tx
+            .insert(schema.evidence)
+            .values({
+              id: crypto.randomUUID(),
+              requirementId: requirement.id,
+              body: command.body,
+              url: command.url,
+              createdAt: stamp(),
+            });
+          await event(
+            `Registraste evidencia para «${requirement.title}»: ${command.body}`,
+            requirement.projectId,
+            command.url,
+            "note",
+          );
+          break;
+        }
+        case "deleteEvidence": {
+          const [removed] = await tx
+            .delete(schema.evidence)
+            .where(eq(schema.evidence.id, command.id))
+            .returning();
+          if (!removed) throw new RecordNotFound("La evidencia ya no existe.");
+          const requirement = await requireRequirement(removed.requirementId);
+          await event(
+            `Retiraste una evidencia de «${requirement.title}». El registro anterior se conserva en la bitácora.`,
+            requirement.projectId,
+          );
+          break;
+        }
         case "saveJob": {
           if (command.id) {
             const updated = await tx
@@ -70,13 +194,11 @@ export class Repository {
             if (!updated.length)
               throw new RecordNotFound("La vacante ya no existe.");
           } else
-            await tx
-              .insert(schema.jobs)
-              .values({
-                ...command.data,
-                id: crypto.randomUUID(),
-                createdAt: stamp(),
-              });
+            await tx.insert(schema.jobs).values({
+              ...command.data,
+              id: crypto.randomUUID(),
+              createdAt: stamp(),
+            });
           await event(
             `${command.id ? "Actualizaste" : "Guardaste"} la vacante «${command.data.title}».`,
           );
@@ -129,14 +251,12 @@ export class Repository {
         }
         case "addTask": {
           await requireProject(command.projectId);
-          await tx
-            .insert(schema.tasks)
-            .values({
-              id: crypto.randomUUID(),
-              projectId: command.projectId,
-              title: command.title,
-              done: false,
-            });
+          await tx.insert(schema.tasks).values({
+            id: crypto.randomUUID(),
+            projectId: command.projectId,
+            title: command.title,
+            done: false,
+          });
           break;
         }
         case "toggleTask": {
@@ -210,45 +330,39 @@ export class Repository {
         ],
         createdAt,
       });
-      await tx
-        .insert(schema.projects)
-        .values({
-          id: projectId,
-          title: "CareerOps",
-          area: "Software",
-          status: "Por empezar",
-          objective:
-            "Organizar vacantes, convertir requisitos en proyectos y reunir evidencias para mi portafolio. Primera meta: probar el recorrido completo y registrar los problemas de uso.",
-          jobId,
-          url: "",
-          skills: ["React", "Next.js", "TypeScript", "Node.js", "Postgres"],
-          createdAt,
-        });
-      await tx
-        .insert(schema.tasks)
-        .values(
-          [
-            "Guardar una vacante y revisar sus requisitos",
-            "Crear un proyecto vinculado a una vacante",
-            "Registrar un avance con evidencia",
-            "Probar la interfaz y documentar un problema",
-          ].map((title) => ({
-            id: crypto.randomUUID(),
-            projectId,
-            title,
-            done: false,
-          })),
-        );
-      await tx
-        .insert(schema.activities)
-        .values({
+      await tx.insert(schema.projects).values({
+        id: projectId,
+        title: "CareerOps",
+        area: "Software",
+        status: "Por empezar",
+        objective:
+          "Organizar vacantes, convertir requisitos en proyectos y reunir evidencias para mi portafolio. Primera meta: probar el recorrido completo y registrar los problemas de uso.",
+        jobId,
+        url: "",
+        skills: ["React", "Next.js", "TypeScript", "Node.js", "Postgres"],
+        createdAt,
+      });
+      await tx.insert(schema.tasks).values(
+        [
+          "Guardar una vacante y revisar sus requisitos",
+          "Crear un proyecto vinculado a una vacante",
+          "Registrar un avance con evidencia",
+          "Probar la interfaz y documentar un problema",
+        ].map((title) => ({
           id: crypto.randomUUID(),
           projectId,
-          kind: "event",
-          url: "",
-          createdAt,
-          body: "Punto de partida: vacante Product Engineer y plan de CareerOps. Las tareas están pendientes de tu revisión.",
-        });
+          title,
+          done: false,
+        })),
+      );
+      await tx.insert(schema.activities).values({
+        id: crypto.randomUUID(),
+        projectId,
+        kind: "event",
+        url: "",
+        createdAt,
+        body: "Punto de partida: vacante Product Engineer y plan de CareerOps. Las tareas están pendientes de tu revisión.",
+      });
     });
   }
 }

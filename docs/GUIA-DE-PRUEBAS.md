@@ -13,6 +13,17 @@ No necesitas programar. El objetivo es comprobar si puedes organizar una oportun
 
 Las cuatro tareas iniciales son una lista de comprobación para ti. Completarlas no indica que domines todas las tecnologías de la vacante.
 
+## Prueba de requisitos y evidencias
+
+1. Abre una vacante. En **Requisitos y evidencias**, pulsa **Usar habilidades del anuncio** si hay habilidades guardadas, o **Añadir requisito**.
+2. Abre un requisito pulsando su nombre, selecciona un proyecto existente y pulsa **Guardar requisito**. Debe decir **Proyecto vinculado**. Si necesitas un proyecto nuevo, usa **Crear proyecto** en la misma vacante y regresa a vincularlo.
+3. Explica qué hiciste y pega un enlace real a una prueba, documento o código. Pulsa **Guardar evidencia**. Debe cambiar a **Con evidencia**. El enlace puede ser privado.
+4. Recarga y vuelve a abrir la vacante: el vínculo y la evidencia deben seguir ahí.
+5. En un requisito de prueba, retira su evidencia y confirma. Debe volver a **Proyecto vinculado**. Su nota histórica permanece en Bitácora.
+6. Añade otro requisito sin asignar proyecto. Debe mostrar **Sin proyecto**, señalando trabajo pendiente de planear.
+
+No necesitas completar todo el anuncio. Empieza con un requisito que CareerOps ya te permita demostrar y revisa si el recorrido se entiende sin ayuda.
+
 ## Cómo reportar un problema
 
 ```text

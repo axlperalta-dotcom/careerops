@@ -10,6 +10,9 @@ Organizador personal de vacantes, proyectos y evidencias para construir un porta
 - Entrar directamente a Vacantes; navegación con Vacantes, Proyectos y Bitácora.
 - Distinguir Guardada (amarillo) y Archivada (naranja).
 - Crear proyectos independientes o vinculados a una vacante.
+- Añadir requisitos dentro de cada vacante e importar sus habilidades sin duplicarlas por nombre.
+- Asociar un proyecto a cada requisito; un mismo proyecto puede servir para varias vacantes.
+- Guardar explicaciones y enlaces de evidencia por requisito, distinguiendo «Sin proyecto», «Proyecto vinculado» y «Con evidencia».
 - Organizar tareas y marcar avances sin confundir tareas completadas con dominio de una habilidad.
 - Registrar pruebas, decisiones y enlaces de evidencia en una bitácora.
 - Conservar datos al recargar o reiniciar la aplicación.
@@ -63,7 +66,7 @@ El workflow de GitHub comprueba tipos, pruebas de integración, compilación y r
 src/app/                 Página, estilos y API
 src/components/          Interfaz del organizador
 src/lib/                 Modelos, validación, esquema y operaciones transaccionales
-migrations/              Esquema SQL inicial
+migrations/              Migraciones SQL numeradas y registradas al aplicarse
 tests/                   Pruebas de datos y navegador
 docs/                    Alcance, decisiones y guía de pruebas manuales
 ```
@@ -78,4 +81,12 @@ Consulta [la guía de pruebas](docs/GUIA-DE-PRUEBAS.md), [las decisiones técnic
 
 El indicador «1 Issue» de desarrollo puede mostrar una diferencia de HTML al iniciar React. En la captura reportada aparece `bis_skin_checked="1"`, que no forma parte del HTML generado por CareerOps. La prueba de carga inicial y recarga con Chromium limpio pasa sin errores de consola.
 
-Esto apunta a una modificación del navegador, probablemente de una extensión; no identifica por sí solo el complemento. Prueba el mismo enlace en una ventana privada sin extensiones habilitadas, o en un perfil limpio. Si el aviso persiste, comparte el detalle nuevo. [Next.js documenta esta causa](https://nextjs.org/docs/messages/react-hydration-error). La prueba `tests/e2e/hydration.spec.ts` verifica la carga sin silenciar errores.
+El usuario comprobó que desaparece en incógnito e identificó Urban VPN como la extensión que provoca el aviso en su navegador. Esta identificación procede de su prueba; el atributo por sí solo no identifica una extensión. [Next.js documenta esta causa](https://nextjs.org/docs/messages/react-hydration-error). La prueba `tests/e2e/hydration.spec.ts` verifica la carga sin silenciar errores.
+
+## Requisitos y evidencias
+
+Abre una vacante y busca **Requisitos y evidencias**. Añade un requisito concreto o pulsa **Usar habilidades del anuncio**. Despliega un requisito para editarlo, elegir un proyecto y añadir evidencia: una explicación de lo que hiciste y un enlace a una demo, prueba, documento o cambio de código. Los enlaces privados conservan sus permisos originales; la aplicación no los publica ni verifica su contenido.
+
+«Con evidencia» indica que existe al menos un enlace registrado, no que la habilidad esté dominada ni evaluada. Completar un proyecto no genera evidencia automáticamente. Cada requisito admite un proyecto y varias evidencias. Las habilidades originales permanecen independientes: editarlas después no modifica requisitos ya creados.
+
+Retirar evidencia la quita del requisito, pero conserva su registro histórico en la bitácora. Eliminar un proyecto desvincula los requisitos y mantiene sus evidencias. Eliminar una vacante o un requisito elimina sus evidencias asociadas, conservando el historial. La actualización añade tablas mediante una migración; no importa ni cambia tus datos anteriores automáticamente.

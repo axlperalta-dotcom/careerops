@@ -57,6 +57,22 @@ export const projectInput = z.object({
 });
 export const commandSchema = z.discriminatedUnion("type", [
   z.object({
+    type: z.literal("saveRequirement"),
+    id: z.string().uuid().optional(),
+    jobId: z.string().uuid(),
+    title: text(250),
+    projectId: z.string().uuid().nullable(),
+  }),
+  z.object({ type: z.literal("importRequirements"), jobId: z.string().uuid() }),
+  z.object({ type: z.literal("deleteRequirement"), id: z.string().uuid() }),
+  z.object({
+    type: z.literal("addEvidence"),
+    requirementId: z.string().uuid(),
+    body: text(3000),
+    url: safeUrl.refine((value) => !!value, "Añade un enlace a tu evidencia."),
+  }),
+  z.object({ type: z.literal("deleteEvidence"), id: z.string().uuid() }),
+  z.object({
     type: z.literal("saveJob"),
     id: z.string().uuid().optional(),
     data: jobInput,
@@ -107,11 +123,35 @@ export type Activity = {
   createdAt: string;
 };
 export type Workspace = {
+  requirements: Requirement[];
+  evidence: Evidence[];
   jobs: Job[];
   projects: Project[];
   tasks: Task[];
   activities: Activity[];
 };
+
+export type Requirement = {
+  id: string;
+  jobId: string;
+  title: string;
+  projectId: string | null;
+};
+export type Evidence = {
+  id: string;
+  requirementId: string;
+  body: string;
+  url: string;
+  createdAt: string;
+};
+export function requirementStatus(
+  requirement: Requirement,
+  evidence: Evidence[],
+) {
+  if (evidence.some((item) => item.requirementId === requirement.id))
+    return "Con evidencia";
+  return requirement.projectId ? "Proyecto vinculado" : "Sin proyecto";
+}
 
 export function projectProgress(tasks: Task[], projectId: string) {
   const relevant = tasks.filter((task) => task.projectId === projectId);

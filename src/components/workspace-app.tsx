@@ -43,6 +43,8 @@ import {
   type Workspace,
 } from "@/lib/model";
 
+import { RequirementsPanel } from "./requirements-panel";
+
 type View = "jobs" | "projects" | "log";
 type Modal =
   | { type: "jobForm"; job?: Job }
@@ -266,7 +268,13 @@ export default function WorkspaceApp() {
     );
   }
   function JobRow({ job }: { job: Job }) {
-    const linked = workspace!.projects.filter((p) => p.jobId === job.id).length;
+    const linked = workspace!.projects.filter(
+      (p) =>
+        p.jobId === job.id ||
+        workspace!.requirements.some(
+          (r) => r.jobId === job.id && r.projectId === p.id,
+        ),
+    ).length;
     return (
       <button
         className="job-row"
@@ -584,7 +592,13 @@ export default function WorkspaceApp() {
     if (modal.type === "job") {
       const job = workspace.jobs.find((j) => j.id === modal.id);
       if (!job) return null;
-      const linked = workspace.projects.filter((p) => p.jobId === job.id);
+      const linked = workspace.projects.filter(
+        (p) =>
+          p.jobId === job.id ||
+          workspace.requirements.some(
+            (r) => r.jobId === job.id && r.projectId === p.id,
+          ),
+      );
       return (
         <>
           <span className="eyebrow">{job.area} / VACANTE</span>
@@ -616,6 +630,14 @@ export default function WorkspaceApp() {
           ) : (
             <p className="muted">Aún no agregas habilidades.</p>
           )}
+          <RequirementsPanel
+            key={job.id}
+            job={job}
+            workspace={workspace}
+            busy={busy}
+            mutate={mutate}
+            openProject={(id) => open({ type: "project", id })}
+          />
           <h3 className="detail-heading">Descripción y requisitos</h3>
           <p className="description">
             {job.description ||
@@ -875,8 +897,8 @@ export default function WorkspaceApp() {
           <h2>¿Eliminar «{modal.title}»?</h2>
           <p className="description">
             {modal.entity === "job"
-              ? "Se eliminará la vacante. Los proyectos vinculados se conservarán como proyectos independientes."
-              : "Se eliminarán el proyecto y sus tareas. Sus avances permanecerán en la bitácora sin un proyecto vinculado."}{" "}
+              ? "Se eliminarán la vacante, sus requisitos y sus evidencias. Los proyectos y la bitácora se conservarán."
+              : "Se eliminarán el proyecto y sus tareas. Los requisitos quedarán sin este proyecto, pero conservarán sus evidencias. Sus avances permanecerán en la bitácora."}{" "}
             Esta acción no se puede deshacer.
           </p>
           <div className="form-actions">

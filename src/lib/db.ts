@@ -1,9 +1,10 @@
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
-import { readFile, mkdir } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import * as schema from "./schema";
 import { Repository } from "./repository";
+import { migrate } from "./migrate";
 
 const globalDb = globalThis as unknown as { careerops?: Promise<Repository> };
 export function getRepository() {
@@ -21,12 +22,7 @@ async function initialize() {
   await mkdir(dataDir, { recursive: true });
   const client = new PGlite(dataDir);
   try {
-    await client.exec(
-      await readFile(
-        path.join(process.cwd(), "migrations", "0000_initial.sql"),
-        "utf8",
-      ),
-    );
+    await migrate(client);
     const repository = new Repository(drizzle(client, { schema }));
     await repository.seed();
     return repository;

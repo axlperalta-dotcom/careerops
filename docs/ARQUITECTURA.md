@@ -10,13 +10,18 @@ La API comprueba Origin para rechazar escrituras explícitamente originadas desd
 
 PGlite guarda PostgreSQL en una carpeta local y se reutiliza como instancia única durante hot reload. La inicialización está protegida por una promesa; la semilla se registra con una clave única y una transacción para no reinsertar datos que el usuario haya eliminado.
 
-El esquema inicial se mantiene como SQL en `migrations/0000_initial.sql`. Futuros cambios necesitan migraciones nuevas, numeradas y versionadas; `CREATE TABLE IF NOT EXISTS` no actualiza tablas existentes. El esquema Drizzle debe mantenerse alineado con esas migraciones.
+El esquema inicial se mantiene como SQL en `migrations/0000_initial.sql`. `src/lib/migrate.ts` aplica una lista ordenada de migraciones y registra cada nombre en `app_meta`, dentro de la misma transacción que su DDL. La migración inicial es idempotente para adoptar bases existentes; `0001_requirements.sql` añade requisitos y evidencias. Repetir el arranque omite migraciones aplicadas. Los próximos cambios deben añadirse como archivos nuevos y registrarse en esa lista; Drizzle se mantiene alineado con el SQL. Las pruebas verifican la actualización desde el esquema anterior y la conservación de todos sus registros.
 
 ## Integridad
 
 - Proyecto → vacante: `ON DELETE SET NULL`.
 - Tarea → proyecto: `ON DELETE CASCADE`.
 - Actividad → proyecto: `ON DELETE SET NULL`.
+- Requisito → vacante y evidencia → requisito: `ON DELETE CASCADE`.
+- Requisito → proyecto: `ON DELETE SET NULL`; sus evidencias sobreviven al eliminar el proyecto.
+- Un requisito tiene un proyecto opcional y varias evidencias. El proyecto puede reutilizarse entre vacantes.
+- Los estados de requisitos se derivan de sus vínculos actuales, sin medir competencia ni validar el contenido remoto.
+- Guardar evidencia añade una nota histórica en la misma transacción. Retirarla no borra esa nota; agrega un evento de retiro.
 - Un cambio de negocio y su evento se guardan en la misma transacción.
 - Volver a marcar una tarea en su estado actual no agrega otra actividad.
 - Las pruebas verifican una reapertura real de la base en disco.

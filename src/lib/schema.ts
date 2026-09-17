@@ -50,3 +50,24 @@ export const activities = pgTable("activities", {
   createdAt: text("created_at").notNull(),
 });
 export const meta = pgTable("app_meta", { key: text().primaryKey() });
+
+export const requirements = pgTable("requirements", {
+  id: uuid().primaryKey(),
+  jobId: uuid("job_id")
+    .notNull()
+    .references(() => jobs.id, { onDelete: "cascade" }),
+  title: text().notNull(),
+  projectId: uuid("project_id").references(() => projects.id, {
+    onDelete: "set null",
+  }),
+  position: serial().notNull(),
+});
+export const evidence = pgTable("evidence", {
+  id: uuid().primaryKey(),
+  requirementId: uuid("requirement_id")
+    .notNull()
+    .references(() => requirements.id, { onDelete: "cascade" }),
+  body: text().notNull(),
+  url: text().notNull(),
+  createdAt: text("created_at").notNull(),
+});
