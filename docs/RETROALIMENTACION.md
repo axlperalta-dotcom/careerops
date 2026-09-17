@@ -25,4 +25,10 @@ Se comprobó que `bis_skin_checked` no existe en el código de la aplicación ni
 
 El usuario confirmó que el aviso desaparece en incógnito y, tras comparar sus extensiones, identificó **Urban VPN** como responsable en su navegador. La documentación oficial contempla extensiones que modifican el HTML como causa de este tipo de discrepancia: https://nextjs.org/docs/messages/react-hydration-error
 
-El usuario dio el incidente por resuelto y aprobó los cambios. La prueba añadida permanece en CI para detectar errores de carga de la aplicación. Después eligió continuar con requisitos y evidencias dentro de las vacantes; su evaluación de esta nueva función sigue pendiente.
+El usuario dio el incidente por resuelto y aprobó los cambios. La prueba añadida permanece en CI para detectar errores de carga de la aplicación.
+
+## Revisión de requisitos y evidencias
+
+Después de implementar el recorrido, el usuario reportó: «ya revisé todo, sí funciona, no está confuso». Solicitó dos ejemplos adicionales y aprobó preparar el material de portafolio.
+
+Se añadieron dos requisitos vinculados a CareerOps, sobre modelo de datos e integración continua, con enlaces al código y a una ejecución aprobada de GitHub Actions. También se añadieron tareas pendientes para practicar su explicación. Esta validación corresponde al responsable del producto como usuario individual; no es un estudio con participantes externos ni una medición de resultados laborales.

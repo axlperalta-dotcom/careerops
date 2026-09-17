@@ -2,6 +2,8 @@
 
 Organizador personal de vacantes, proyectos y evidencias para construir un portafolio profesional.
 
+[**Ver el caso de estudio con capturas**](docs/portafolio/README.md) · [Texto para CV](docs/portafolio/CV.md) · [Guion de entrevista](docs/portafolio/ENTREVISTA.md)
+
 **Estado: prototipo local funcional, de un solo usuario. Repositorio privado.** No tiene autenticación ni está preparado para exponerse a Internet. La primera versión permite probar el producto antes de contratar infraestructura o incorporar IA.
 
 ## Qué puedes hacer
@@ -73,7 +75,7 @@ docs/                    Alcance, decisiones y guía de pruebas manuales
 
 ## Trabajo asistido por IA
 
-Proyecto desarrollado con asistencia de Codex. El responsable del producto aporta requisitos, criterio de interfaz y validación de uso. El código generado se verifica con pruebas y revisión; su generación no se presenta como experiencia profesional previa del responsable. Los resultados reales del piloto se documentarán cuando existan.
+Proyecto desarrollado con asistencia de Codex. El responsable del producto aporta requisitos, criterio de interfaz y validación de uso. El código generado se verifica con pruebas y revisión; su generación no se presenta como experiencia profesional previa del responsable. Las observaciones de su uso individual están en [Retroalimentación](docs/RETROALIMENTACION.md); todavía no se ha realizado un piloto con participantes externos.
 
 Consulta [la guía de pruebas](docs/GUIA-DE-PRUEBAS.md), [las decisiones técnicas](docs/ARQUITECTURA.md) y [el alcance](docs/ALCANCE.md).
 
